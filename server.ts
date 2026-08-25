@@ -25,54 +25,8 @@ interface LeaderboardEntry {
   grade: string;
 }
 
-// Initial leaderboard with seed entries for competition monitoring
-let leaderboard: LeaderboardEntry[] = [
-  {
-    id: "seed-1",
-    teamName: "CyberSnafu 🤖",
-    missionId: "warehouse-runner",
-    missionTitle: "Warehouse Runner",
-    totalScore: 92,
-    performanceScore: 40,
-    knowledgeScore: 30,
-    designScore: 12,
-    aiScore: 10,
-    aiQuestionsAsked: 3,
-    wiringMistakes: 2,
-    timestamp: "10 mins ago",
-    grade: "S"
-  },
-  {
-    id: "seed-2",
-    teamName: "MechWarriors ⚔️",
-    missionId: "collapsed-rescue",
-    missionTitle: "Collapsed Building Rescue",
-    totalScore: 85,
-    performanceScore: 30,
-    knowledgeScore: 30,
-    designScore: 20,
-    aiScore: 5,
-    aiQuestionsAsked: 1,
-    wiringMistakes: 0,
-    timestamp: "25 mins ago",
-    grade: "A"
-  },
-  {
-    id: "seed-3",
-    teamName: "RoboGears ⚙️",
-    missionId: "rooftop-delivery",
-    missionTitle: "Rooftop Delivery",
-    totalScore: 78,
-    performanceScore: 30,
-    knowledgeScore: 20,
-    designScore: 18,
-    aiScore: 10,
-    aiQuestionsAsked: 3,
-    wiringMistakes: 1,
-    timestamp: "40 mins ago",
-    grade: "B"
-  }
-];
+// Initial leaderboard for competition monitoring
+let leaderboard: LeaderboardEntry[] = [];
 
 let scoresVisible = true;
 
@@ -479,6 +433,13 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     return res.status(401).json({ success: false, message: "Invalid host passcode" });
   });
 
+  // Admin Reset Competition Endpoint
+  app.post("/api/admin/reset", (_req, res) => {
+    leaderboard = [];
+    io.emit("leaderboard_update", leaderboard);
+    res.json({ success: true, message: "Competition reset successfully" });
+  });
+
   // --- SOCKET.IO REALTIME EVENTS ---
   io.on("connection", (socket) => {
     // Send initial state to newly connected client
@@ -489,6 +450,12 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     socket.on("get_leaderboard", () => {
       socket.emit("leaderboard_update", leaderboard);
       socket.emit("visibility_update", scoresVisible);
+    });
+
+    // Reset competition socket event
+    socket.on("reset_competition", () => {
+      leaderboard = [];
+      io.emit("leaderboard_update", leaderboard);
     });
 
     // Submit new score

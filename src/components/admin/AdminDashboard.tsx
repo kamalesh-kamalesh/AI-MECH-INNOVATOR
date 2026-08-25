@@ -34,7 +34,8 @@ import {
   Clock,
   Radio,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -58,12 +59,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [masterTimerSeconds, setMasterTimerSeconds] = useState(2700); // 45 mins
   const [scoresVisibleToPlayers, setScoresVisibleToPlayers] = useState(true);
   const [resultsLocked, setResultsLocked] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   // Modal State for inspecting individual team
   const [selectedTeam, setSelectedTeam] = useState<AdminTeam | null>(null);
 
   // Live Clock
   const [currentTimeStr, setCurrentTimeStr] = useState('');
+
+  const handleResetCompetition = async () => {
+    playClickSound();
+    setTeams([]);
+    setMasterTimerSeconds(2700);
+    setRoundStatus('ACTIVE');
+    setCurrentRoundName('ROBOT 1 — BUILD & TEST');
+    setSelectedTeam(null);
+    setShowResetModal(false);
+
+    try {
+      await fetch('/api/admin/reset', { method: 'POST' });
+    } catch (err) {
+      console.warn('Backend reset call warning:', err);
+    }
+  };
 
   useEffect(() => {
     const updateClock = () => {
@@ -303,6 +321,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               onClick={() => {
                 playClickSound();
+                setShowResetModal(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-700/60 text-red-300 hover:text-red-100 text-xs font-bold transition-colors cursor-pointer shadow-sm"
+              title="Start a new competition and reset all teams"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Competition</span>
+            </button>
+
+            <button
+              onClick={() => {
+                playClickSound();
                 onSwitchToPlayerMode();
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold transition-colors cursor-pointer"
@@ -444,6 +474,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         onForceSubmit={handleForceSubmitTeam}
         onDisqualifyTeam={handleDisqualifyTeam}
       />
+
+      {/* Reset Competition Confirmation Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-red-500/50 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl animate-in fade-in zoom-in duration-150">
+            <div className="flex items-center gap-3 text-red-400 border-b border-slate-800 pb-4">
+              <div className="p-2.5 rounded-xl bg-red-950 border border-red-500/30">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-wider uppercase text-slate-100 font-mono">
+                  START NEW COMPETITION?
+                </h3>
+                <p className="text-xs text-red-400/90 font-mono">Destructive Host Action</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300 font-sans leading-relaxed">
+              <p>
+                This will reset the event state and start a completely fresh competition:
+              </p>
+              <ul className="list-disc pl-5 space-y-1 text-slate-400 font-mono text-[11px]">
+                <li>All teams, scores, and submissions will be cleared (0 teams).</li>
+                <li>Leaderboard and rankings will start completely empty.</li>
+                <li>Round 1 timer will reset to 45:00 fresh state.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2 font-mono">
+              <button
+                onClick={handleResetCompetition}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                RESET COMPETITION
+              </button>
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setShowResetModal(false);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

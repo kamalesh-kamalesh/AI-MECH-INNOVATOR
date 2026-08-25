@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AdminTeam } from '../../types';
 import { playClickSound } from '../../utils/audio';
+import { Trophy } from 'lucide-react';
 
 interface AdminResultsProps {
   teams: AdminTeam[];
@@ -124,8 +125,12 @@ export const AdminResults: React.FC<AdminResultsProps> = ({ teams, isLocked, onT
             <tbody className="divide-y divide-slate-800/60 font-medium">
               {sortedTeams.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-500 text-xs">
-                    No results recorded yet.
+                  <td colSpan={3} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center space-y-2 py-6">
+                      <Trophy className="w-10 h-10 text-slate-600 mb-1 stroke-[1.5]" />
+                      <p className="text-sm font-bold text-slate-200 tracking-wider uppercase">NO TEAMS REGISTERED</p>
+                      <p className="text-xs text-slate-500 font-sans">Teams will appear here once participants join the competition.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (

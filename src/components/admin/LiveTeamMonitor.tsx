@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AdminTeam, TeamStatus } from '../../types';
 import { playClickSound } from '../../utils/audio';
-import { Search } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 
 interface LiveTeamMonitorProps {
   teams: AdminTeam[];
@@ -154,8 +154,18 @@ export const LiveTeamMonitor: React.FC<LiveTeamMonitorProps> = ({
             <tbody className="divide-y divide-slate-800/60 font-medium">
               {filteredTeams.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-500 text-xs">
-                    {teams.length === 0 ? 'No registered teams yet.' : 'No teams found matching search criteria.'}
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center space-y-2 py-6">
+                      <Users className="w-10 h-10 text-slate-600 mb-1 stroke-[1.5]" />
+                      <p className="text-sm font-bold text-slate-200 tracking-wider uppercase">
+                        {teams.length === 0 ? 'NO TEAMS REGISTERED' : 'NO MATCHING TEAMS'}
+                      </p>
+                      <p className="text-xs text-slate-500 font-sans">
+                        {teams.length === 0
+                          ? 'Teams will appear here once participants join the competition.'
+                          : 'Try searching with a different keyword or clearing filters.'}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (

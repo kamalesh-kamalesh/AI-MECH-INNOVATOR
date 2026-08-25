@@ -12,7 +12,8 @@ import {
   Users,
   Award,
   Sparkles,
-  AlertTriangle
+  AlertTriangle,
+  Trophy
 } from 'lucide-react';
 
 interface HostDashboardModalProps {
@@ -201,8 +202,10 @@ export const HostDashboardModal: React.FC<HostDashboardModalProps> = ({
             <div className="space-y-2">
               <h4 className="text-xs font-mono uppercase text-slate-400">Manage Team Submissions</h4>
               {leaderboard.length === 0 ? (
-                <div className="p-8 text-center bg-slate-950 rounded-xl border border-slate-800 text-slate-500 font-mono text-xs">
-                  Leaderboard is currently empty.
+                <div className="p-8 text-center bg-slate-950 rounded-xl border border-slate-800 text-slate-400 font-mono space-y-2">
+                  <Trophy className="w-8 h-8 text-slate-600 mx-auto stroke-[1.5]" />
+                  <p className="font-bold text-slate-200 tracking-wider uppercase text-sm">NO TEAMS REGISTERED</p>
+                  <p className="text-xs text-slate-500 font-sans">Teams will appear here once participants join the competition.</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1 scrollbar-thin">

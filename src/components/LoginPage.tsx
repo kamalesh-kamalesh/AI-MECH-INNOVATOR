@@ -94,7 +94,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 setTeamName(e.target.value);
                 if (e.target.value.trim()) setError('');
               }}
-              placeholder="e.g. CyberSnafu"
+              placeholder="e.g. RoboTech"
               maxLength={25}
               className="w-full bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-xl px-4 py-2.5 text-slate-100 text-sm outline-none transition-all placeholder:text-slate-600 focus:ring-1 focus:ring-cyan-500/40"
               required

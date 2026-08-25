@@ -55,7 +55,7 @@ export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
   onPlayAgain,
 }) => {
   const [submittedToLeaderboard, setSubmittedToLeaderboard] = useState(false);
-  const [inputTeamName, setInputTeamName] = useState(teamName || 'CyberSnafu');
+  const [inputTeamName, setInputTeamName] = useState(teamName || 'Team Mech');
   const [searchFilter, setSearchFilter] = useState('');
   const [showLeaderboardSection, setShowLeaderboardSection] = useState(true);
 
@@ -130,7 +130,7 @@ export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
               YOUR RESULT
             </h2>
             <div className="text-lg font-bold text-amber-300 font-mono mt-1">
-              TEAM: {inputTeamName || teamName || 'CyberSnafu'}
+              TEAM: {inputTeamName || teamName || 'Team Mech'}
             </div>
           </div>
 
@@ -310,8 +310,10 @@ export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
             </p>
           </div>
         ) : filteredLeaderboard.length === 0 ? (
-          <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-500 font-mono text-xs">
-            No entries found on the leaderboard yet. Be the first team to publish!
+          <div className="p-10 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-400 font-mono space-y-2">
+            <Trophy className="w-10 h-10 text-slate-600 mx-auto stroke-[1.5]" />
+            <p className="font-bold text-slate-200 tracking-wider uppercase text-sm">NO TEAMS REGISTERED</p>
+            <p className="text-xs text-slate-500 font-sans">Teams will appear here once participants join the competition.</p>
           </div>
         ) : (
           <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1 scrollbar-thin">

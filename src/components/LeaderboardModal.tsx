@@ -87,7 +87,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-500 block uppercase">TEAM NAME</span>
-                  <span className="text-base font-bold text-amber-300 truncate block">{teamName || 'CyberSnafu'}</span>
+                  <span className="text-base font-bold text-amber-300 truncate block">{teamName || 'Unregistered Team'}</span>
                 </div>
                 <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-500 block uppercase">CURRENT STAGE</span>
@@ -141,8 +141,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                 </p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-500 font-mono text-xs">
-                No entries found on the leaderboard yet.
+              <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-400 font-mono space-y-2">
+                <Trophy className="w-8 h-8 text-slate-600 mx-auto stroke-[1.5]" />
+                <p className="font-bold text-slate-200 tracking-wider uppercase text-sm">NO TEAMS REGISTERED</p>
+                <p className="text-xs text-slate-500 font-sans">Teams will appear here once participants join the competition.</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
