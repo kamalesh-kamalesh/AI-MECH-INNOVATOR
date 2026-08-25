@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+:root {
+  font-size: 18px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    font-size: 19px;
+  }
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.6;
+}

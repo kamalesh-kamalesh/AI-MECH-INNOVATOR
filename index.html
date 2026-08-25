@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      (function() {
+        var origError = console.error;
+        var origDebug = console.debug;
+        var origWarn = console.warn;
+
+        function isWsErr(args) {
+          for (var i = 0; i < args.length; i++) {
+            var arg = args[i];
+            var str = String((arg && (arg.message || arg.reason || arg.stack || arg)) || '').toLowerCase();
+            if (str.includes('websocket') || str.includes('[vite]') || str.includes('closed without opened')) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        console.error = function() {
+          if (isWsErr(arguments)) return;
+          origError.apply(console, arguments);
+        };
+        console.debug = function() {
+          if (isWsErr(arguments)) return;
+          origDebug.apply(console, arguments);
+        };
+        console.warn = function() {
+          if (isWsErr(arguments)) return;
+          origWarn.apply(console, arguments);
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = String((event.reason && (event.reason.message || event.reason)) || '').toLowerCase();
+          if (reason.includes('websocket') || reason.includes('closed without opened') || reason.includes('vite')) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }, true);
+
+        window.addEventListener('error', function(event) {
+          var msg = String((event.message || event.error) || '').toLowerCase();
+          if (msg.includes('websocket') || msg.includes('closed without opened') || msg.includes('vite')) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }, true);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Mech Innovator: Robotics STEM Arena</title>
+    <meta name="description" content="Interactive STEM robotics build-and-test simulator." />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
