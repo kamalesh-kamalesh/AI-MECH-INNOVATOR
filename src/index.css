@@ -1,16 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  font-size: 18px;
+  font-size: 20px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 @media (min-width: 640px) {
   :root {
-    font-size: 19px;
+    font-size: 21.5px;
   }
 }
 
 body {
-  font-size: 1rem;
-  line-height: 1.6;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  letter-spacing: 0.015em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-tech, .font-display {
+  font-family: 'Chakra Petch', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }

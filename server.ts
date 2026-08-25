@@ -25,7 +25,7 @@ interface LeaderboardEntry {
   grade: string;
 }
 
-// Initial seed leaderboard entries for arcade atmosphere
+// Initial leaderboard with seed entries for competition monitoring
 let leaderboard: LeaderboardEntry[] = [
   {
     id: "seed-1",

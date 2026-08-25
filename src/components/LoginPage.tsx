@@ -19,9 +19,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onStartChallenge,
   onOpenAdminLogin,
 }) => {
-  const [teamName, setTeamName] = useState(initialTeamName || 'CyberSnafu 🤖');
-  const [member1, setMember1] = useState(initialMember1 || 'Alex Rivers');
-  const [member2, setMember2] = useState(initialMember2 || 'Sam Vance');
+  const [teamName, setTeamName] = useState(initialTeamName || '');
+  const [member1, setMember1] = useState(initialMember1 || '');
+  const [member2, setMember2] = useState(initialMember2 || '');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {

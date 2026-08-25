@@ -36,9 +36,9 @@ export default function App() {
 
   // Game Flow State: Starts at Round 0 (Login Screen)
   const [currentRound, setCurrentRound] = useState<GameRound>(0);
-  const [teamName, setTeamName] = useState<string>('CyberSnafu 🤖');
-  const [member1, setMember1] = useState<string>('Alex Rivers');
-  const [member2, setMember2] = useState<string>('Sam Vance');
+  const [teamName, setTeamName] = useState<string>('');
+  const [member1, setMember1] = useState<string>('');
+  const [member2, setMember2] = useState<string>('');
   
   // Mission Selections for Robot 1 & Robot 2
   const [robot1Mission, setRobot1Mission] = useState<Mission>(ROBOT1_MISSIONS[0]);

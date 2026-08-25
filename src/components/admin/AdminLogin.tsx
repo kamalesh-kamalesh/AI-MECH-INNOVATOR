@@ -8,8 +8,8 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onCancel }) => {
-  const [adminId, setAdminId] = useState('ADMIN-01');
-  const [password, setPassword] = useState('P@ttu');
+  const [adminId, setAdminId] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -25,7 +25,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onCancel
       setError('');
       onLoginSuccess();
     } else {
-      setError('Invalid passcode! Passcode: P@ttu');
+      setError('Invalid passcode! Access denied.');
     }
   };
 
@@ -120,7 +120,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onCancel
         </form>
 
         <div className="text-center pt-2 border-t border-slate-800 text-[11px] text-slate-500">
-          Organizer Passcode: <code className="text-purple-300 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">P@ttu</code>
+          Authorized Organizer Access Only
         </div>
       </div>
     </div>

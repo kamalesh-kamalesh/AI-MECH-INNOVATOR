@@ -36,13 +36,10 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
     { label: 'SUBMIT', key: 'SUBMIT' },
   ];
 
-  const recentActivities = [
-    { time: '09:42', text: 'Team Cyber Snafu started Robot 1 testing' },
-    { time: '09:40', text: 'Team MechaCore completed Robot 1' },
-    { time: '09:39', text: 'Team RoboX used AI consultation' },
-    { time: '09:37', text: 'Team Titan entered Robot 2' },
-    { time: '09:35', text: 'Team Nova joined the challenge' },
-  ];
+  const recentActivities = teams.map((t) => ({
+    time: t.loginTime || 'Active',
+    text: `Team ${t.name} in stage: ${t.currentStage}`,
+  }));
 
   return (
     <div className="space-y-8 font-mono max-w-5xl">
@@ -116,13 +113,13 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
         {/* Stage breakdown numbers */}
         <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-slate-800 text-xs text-slate-400">
-          <span><strong className="text-slate-200">{buildingCount || 7}</strong> Building</span>
+          <span><strong className="text-slate-200">{buildingCount}</strong> Building</span>
           <span>•</span>
-          <span><strong className="text-cyan-400">{testingCount || 2}</strong> Testing</span>
+          <span><strong className="text-cyan-400">{testingCount}</strong> Testing</span>
           <span>•</span>
-          <span><strong className="text-amber-400">{optimizingCount || 1}</strong> Optimizing</span>
+          <span><strong className="text-amber-400">{optimizingCount}</strong> Optimizing</span>
           <span>•</span>
-          <span><strong className="text-emerald-400">{doneCount || 2}</strong> Completed</span>
+          <span><strong className="text-emerald-400">{doneCount}</strong> Completed</span>
         </div>
       </div>
 
@@ -133,12 +130,16 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
         </h3>
 
         <div className="space-y-2.5 text-xs text-slate-300">
-          {recentActivities.map((act, i) => (
-            <div key={i} className="flex items-center gap-4 py-1.5 border-b border-slate-800/40 last:border-none">
-              <span className="text-slate-500 font-bold shrink-0">{act.time}</span>
-              <span className="text-slate-200">{act.text}</span>
-            </div>
-          ))}
+          {recentActivities.length === 0 ? (
+            <p className="text-slate-500 py-2">No recent team activity logged yet.</p>
+          ) : (
+            recentActivities.map((act, i) => (
+              <div key={i} className="flex items-center gap-4 py-1.5 border-b border-slate-800/40 last:border-none">
+                <span className="text-slate-500 font-bold shrink-0">{act.time}</span>
+                <span className="text-slate-200">{act.text}</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

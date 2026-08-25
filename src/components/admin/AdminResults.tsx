@@ -122,7 +122,14 @@ export const AdminResults: React.FC<AdminResultsProps> = ({ teams, isLocked, onT
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-medium">
-              {sortedTeams.map((team, idx) => (
+              {sortedTeams.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-8 text-center text-slate-500 text-xs">
+                    No results recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                sortedTeams.map((team, idx) => (
                 <tr key={team.id} className="hover:bg-slate-800/40 transition-colors">
                   <td className="py-3.5 px-4 text-center font-bold text-slate-400">
                     {idx + 1}
@@ -137,7 +144,7 @@ export const AdminResults: React.FC<AdminResultsProps> = ({ teams, isLocked, onT
                     {team.totalScore}
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

@@ -104,7 +104,14 @@ export const AdminScoreboard: React.FC<AdminScoreboardProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-medium text-slate-200">
-              {sortedTeams.map((team) => (
+              {sortedTeams.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-500 text-xs font-mono">
+                    No team scores recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                sortedTeams.map((team) => (
                 <tr key={team.id} className="hover:bg-slate-800/40 transition-colors">
                   <td className="py-3.5 px-4 text-center font-bold text-slate-400">
                     {team.rank}
@@ -149,7 +156,7 @@ export const AdminScoreboard: React.FC<AdminScoreboardProps> = ({
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
