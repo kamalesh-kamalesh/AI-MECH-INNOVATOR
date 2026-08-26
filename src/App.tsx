@@ -334,12 +334,54 @@ export default function App() {
     setCurrentRound(0);
   };
 
+  // Synchronize live team progress to server & Admin Dashboard
+  useEffect(() => {
+    if (!teamName) return;
+    const stageMap: Record<number, string> = {
+      0: 'LOGIN',
+      1: 'MISSION_BRIEFING',
+      2: 'ROBOT1_BUILD',
+      3: 'ROBOT1_TEST',
+      4: 'ROBOT2_BUILD',
+      5: 'ROBOT2_TEST',
+      6: 'OPTIMIZATION',
+      7: 'RESULTS',
+    };
+    const currentStage = stageMap[currentRound] || 'ACTIVE';
+    socket?.emit('team_sync', {
+      name: teamName,
+      members: [member1 || 'Player 1', member2 || 'Player 2'],
+      status: currentRound === 7 ? 'COMPLETED' : (currentRound === 3 || currentRound === 5 ? 'TESTING' : 'ACTIVE'),
+      currentStage,
+      currentRobot: currentRound <= 3 ? 'Robot 1' : (currentRound <= 5 ? 'Robot 2' : 'Finished'),
+      aiCreditsUsed: 5 - aiCredits,
+      aiCreditsRemaining: aiCredits,
+      aiQuestionsAsked,
+      progressPercent: Math.min(100, Math.round((currentRound / 7) * 100)),
+      robot1: {
+        missionTitle: robot1Mission.title,
+        selectedDrive: robot1Selection.drive || 'None',
+        selectedBody: robot1Selection.body || 'None',
+        selectedSensor: robot1Selection.sensor || 'None',
+        isComplete: currentRound >= 4,
+      },
+      robot2: {
+        missionTitle: robot2Mission.title,
+        selectedDrive: robot2Selection.drive || 'None',
+        selectedBody: robot2Selection.body || 'None',
+        selectedSensor: robot2Selection.sensor || 'None',
+        isComplete: currentRound >= 6,
+      },
+    });
+  }, [currentRound, teamName, member1, member2, aiCredits, aiQuestionsAsked, robot1Mission, robot2Mission, robot1Selection, robot2Selection]);
+
   const totalWiringMistakes = r1WiringMistakes + r2WiringMistakes;
 
   // Render Admin Dashboard View Mode
   if (viewMode === 'admin_dashboard') {
     return (
       <AdminDashboard
+        socket={socket}
         onLogout={() => {
           setIsAdminAuthenticated(false);
           setViewMode('player');

@@ -33,7 +33,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
   const filtered = leaderboard.filter(
     (e) =>
       e.teamName.toLowerCase().includes(search.toLowerCase()) ||
-      e.missionTitle.toLowerCase().includes(search.toLowerCase())
+      (e.robot1MissionTitle || '').toLowerCase().includes(search.toLowerCase()) ||
+      (e.robot2MissionTitle || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -191,7 +192,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                             )}
                           </div>
                           <span className="text-[10px] text-slate-400 block truncate">
-                            {entry.missionTitle} • Grade {entry.grade || 'A'}
+                            {entry.robot1MissionTitle} & {entry.robot2MissionTitle} • Grade {entry.grade || 'A'}
                           </span>
                         </div>
                       </div>

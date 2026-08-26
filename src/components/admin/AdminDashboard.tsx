@@ -38,14 +38,18 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+import { Socket } from 'socket.io-client';
+
 interface AdminDashboardProps {
   onLogout: () => void;
   onSwitchToPlayerMode: () => void;
+  socket?: Socket | null;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogout,
   onSwitchToPlayerMode,
+  socket,
 }) => {
   // Master State
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -67,6 +71,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Live Clock
   const [currentTimeStr, setCurrentTimeStr] = useState('');
 
+  // Fetch initial teams from backend and listen for live socket updates
+  useEffect(() => {
+    fetch('/api/teams')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
+          setTeams(data.teams);
+        }
+      })
+      .catch((err) => console.warn('Failed to fetch /api/teams:', err));
+
+    if (socket) {
+      socket.emit('get_leaderboard');
+      const handleTeamsUpdate = (liveTeams: AdminTeam[]) => {
+        if (Array.isArray(liveTeams)) {
+          setTeams(liveTeams);
+        }
+      };
+
+      socket.on('teams_update', handleTeamsUpdate);
+      return () => {
+        socket.off('teams_update', handleTeamsUpdate);
+      };
+    }
+  }, [socket]);
+
   const handleResetCompetition = async () => {
     playClickSound();
     setTeams([]);
@@ -75,6 +105,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setCurrentRoundName('ROBOT 1 — BUILD & TEST');
     setSelectedTeam(null);
     setShowResetModal(false);
+
+    if (socket) {
+      socket.emit('reset_competition');
+    }
 
     try {
       await fetch('/api/admin/reset', { method: 'POST' });

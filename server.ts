@@ -12,21 +12,46 @@ dotenv.config();
 interface LeaderboardEntry {
   id: string;
   teamName: string;
-  missionId: string;
-  missionTitle: string;
+  robot1MissionTitle: string;
+  robot2MissionTitle: string;
   totalScore: number;
-  performanceScore: number;
-  knowledgeScore: number;
-  designScore: number;
+  robot1Score: number;
+  robot2Score: number;
   aiScore: number;
+  optimizationScore: number;
   aiQuestionsAsked: number;
-  wiringMistakes: number;
+  totalWiringMistakes: number;
   timestamp: string;
   grade: string;
 }
 
 // Initial leaderboard for competition monitoring
 let leaderboard: LeaderboardEntry[] = [];
+
+interface AdminTeamEntry {
+  id: string;
+  name: string;
+  avatar: string;
+  members: [string, string];
+  status: string;
+  currentStage: string;
+  currentRobot: string;
+  aiCreditsUsed: number;
+  aiCreditsRemaining: number;
+  aiQuestionsAsked: number;
+  aiHistorySummary: string[];
+  robot1: any;
+  robot2: any;
+  aiStrategyScore: number;
+  optimizationScore: number;
+  totalScore: number;
+  timeRemainingSeconds: number;
+  progressPercent: number;
+  loginTime: string;
+  isDisqualified?: boolean;
+}
+
+let adminTeams: AdminTeamEntry[] = [];
 
 let scoresVisible = true;
 
@@ -230,7 +255,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
       if (aiClient && process.env.GEMINI_API_KEY) {
         try {
           const response = await aiClient.models.generateContent({
-            model: "gemini-3.6-flash",
+            model: "gemini-1.5-flash",
             contents: prompt,
             config: {
               systemInstruction,
@@ -241,7 +266,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
             return res.json({
               reply: response.text,
               reasoning: `1. Evaluated mission profile: ${missionTitle || 'Robotics Task'}.\n2. Computed mass-to-torque distribution and incline friction coefficients.\n3. Verified sensor frequency isolation against ambient noise.`,
-              provider: "Gemini 3.6 Flash (AI Engine)"
+              provider: "Gemini 1.5 Flash (AI Engine)"
             });
           }
         } catch (gErr: any) {
@@ -375,7 +400,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
       const systemInstruction = `You are the AI Engineer inside a robotics-design arcade game called "AI Mech Innovator" for a mechanical engineering club event. Answer the team's question about their current mission in 2 to 4 short, energetic sentences. Be technically accurate, but give engineering reasoning rather than a flat final answer — they still have to decide. Current Mission: "${missionTitle || 'Robotics Mission'}": ${missionBrief || ''}. Selected Components so far: Drive=${previousDrive || 'None'}, Body=${previousBody || 'None'}, Sensor=${previousSensor || 'None'}. Keep tone fast, playful, and mission-control style!`;
 
       // Try preferred models in sequence with retry on transient errors
-      const modelsToTry = ["gemini-3.6-flash", "gemini-2.5-pro"];
+      const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro"];
       let replyText: string | null = null;
 
       for (const modelName of modelsToTry) {
@@ -415,7 +440,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
         return res.json(smartAnswer);
       }
 
-      return res.json({ reply: replyText, provider: "Gemini 3.6 Flash" });
+      return res.json({ reply: replyText, provider: "Gemini 1.5 Flash" });
     } catch (error: any) {
       console.warn("Gemini API request handler fallback:", error?.message || error);
       const fallbackAnswer = generateSmartBotAnswer(req.body?.prompt || '', req.body?.missionTitle, req.body?.missionBrief, req.body?.previousDrive, req.body?.previousBody, req.body?.previousSensor);
@@ -433,10 +458,17 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     return res.status(401).json({ success: false, message: "Invalid host passcode" });
   });
 
+  // REST Teams endpoint for Admin
+  app.get("/api/teams", (_req, res) => {
+    res.json({ teams: adminTeams });
+  });
+
   // Admin Reset Competition Endpoint
   app.post("/api/admin/reset", (_req, res) => {
     leaderboard = [];
+    adminTeams = [];
     io.emit("leaderboard_update", leaderboard);
+    io.emit("teams_update", adminTeams);
     res.json({ success: true, message: "Competition reset successfully" });
   });
 
@@ -444,25 +476,93 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
   io.on("connection", (socket) => {
     // Send initial state to newly connected client
     socket.emit("leaderboard_update", leaderboard);
+    socket.emit("teams_update", adminTeams);
     socket.emit("visibility_update", scoresVisible);
 
-    // Request leaderboard
+    // Request leaderboard & teams
     socket.on("get_leaderboard", () => {
       socket.emit("leaderboard_update", leaderboard);
+      socket.emit("teams_update", adminTeams);
       socket.emit("visibility_update", scoresVisible);
+    });
+
+    // Sync live team progress
+    socket.on("team_sync", (incomingTeam: Partial<AdminTeamEntry> & { name: string }) => {
+      if (!incomingTeam?.name?.trim()) return;
+
+      const teamNameClean = incomingTeam.name.trim().toLowerCase();
+      const existingIdx = adminTeams.findIndex(
+        (t) => t.name.trim().toLowerCase() === teamNameClean || (incomingTeam.id && t.id === incomingTeam.id)
+      );
+
+      if (existingIdx >= 0) {
+        adminTeams[existingIdx] = {
+          ...adminTeams[existingIdx],
+          ...incomingTeam,
+        };
+      } else {
+        const newTeam: AdminTeamEntry = {
+          id: incomingTeam.id || `ROB-${String(adminTeams.length + 1).padStart(2, '0')}`,
+          name: incomingTeam.name,
+          avatar: incomingTeam.avatar || '🤖',
+          members: incomingTeam.members || ['Player 1', 'Player 2'],
+          status: incomingTeam.status || 'ACTIVE',
+          currentStage: incomingTeam.currentStage || 'LOGIN',
+          currentRobot: incomingTeam.currentRobot || 'Robot 1',
+          aiCreditsUsed: incomingTeam.aiCreditsUsed || 0,
+          aiCreditsRemaining: incomingTeam.aiCreditsRemaining !== undefined ? incomingTeam.aiCreditsRemaining : 5,
+          aiQuestionsAsked: incomingTeam.aiQuestionsAsked || 0,
+          aiHistorySummary: incomingTeam.aiHistorySummary || [],
+          robot1: incomingTeam.robot1 || {
+            missionTitle: 'Robotics Mission 1',
+            selectedDrive: 'None',
+            selectedBody: 'None',
+            selectedSensor: 'None',
+            testAttempts: 0,
+            failuresCount: 0,
+            repairsCount: 0,
+            currentPerformanceScore: 0,
+            totalScore: 0,
+            isComplete: false,
+          },
+          robot2: incomingTeam.robot2 || {
+            missionTitle: 'Robotics Mission 2',
+            selectedDrive: 'None',
+            selectedBody: 'None',
+            selectedSensor: 'None',
+            testAttempts: 0,
+            failuresCount: 0,
+            repairsCount: 0,
+            currentPerformanceScore: 0,
+            totalScore: 0,
+            isComplete: false,
+          },
+          aiStrategyScore: incomingTeam.aiStrategyScore || 0,
+          optimizationScore: incomingTeam.optimizationScore || 0,
+          totalScore: incomingTeam.totalScore || 0,
+          timeRemainingSeconds: incomingTeam.timeRemainingSeconds !== undefined ? incomingTeam.timeRemainingSeconds : 2700,
+          progressPercent: incomingTeam.progressPercent || 10,
+          loginTime: incomingTeam.loginTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        adminTeams.unshift(newTeam);
+      }
+
+      io.emit("teams_update", adminTeams);
     });
 
     // Reset competition socket event
     socket.on("reset_competition", () => {
       leaderboard = [];
+      adminTeams = [];
       io.emit("leaderboard_update", leaderboard);
+      io.emit("teams_update", adminTeams);
     });
 
     // Submit new score
     socket.on("submit_score", (entry: LeaderboardEntry) => {
-      // Add or replace entry for same team
+      // Add or replace entry for same team in leaderboard
       const existingIdx = leaderboard.findIndex(
-        (e) => e.teamName.trim().toLowerCase() === entry.teamName.trim().toLowerCase() && e.missionId === entry.missionId
+        (e) => e.teamName.trim().toLowerCase() === entry.teamName.trim().toLowerCase()
       );
 
       if (existingIdx >= 0) {
@@ -473,15 +573,32 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
 
       // Sort descending by total score
       leaderboard.sort((a, b) => b.totalScore - a.totalScore);
-
       io.emit("leaderboard_update", leaderboard);
+
+      // Also update adminTeams entry to COMPLETED
+      const teamIdx = adminTeams.findIndex(
+        (t) => t.name.trim().toLowerCase() === entry.teamName.trim().toLowerCase()
+      );
+      if (teamIdx >= 0) {
+        adminTeams[teamIdx] = {
+          ...adminTeams[teamIdx],
+          status: 'COMPLETED',
+          currentStage: 'RESULTS',
+          currentRobot: 'Finished',
+          totalScore: entry.totalScore,
+          progressPercent: 100,
+        };
+        io.emit("teams_update", adminTeams);
+      }
     });
 
     // Host Action: Remove team entry
     socket.on("host_delete_team", ({ id, hostPasscode }: { id: string; hostPasscode: string }) => {
       if (hostPasscode === "aimech2026") {
         leaderboard = leaderboard.filter((item) => item.id !== id);
+        adminTeams = adminTeams.filter((item) => item.id !== id);
         io.emit("leaderboard_update", leaderboard);
+        io.emit("teams_update", adminTeams);
       }
     });
 
@@ -497,7 +614,9 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     socket.on("host_clear_all", ({ hostPasscode }: { hostPasscode: string }) => {
       if (hostPasscode === "aimech2026") {
         leaderboard = [];
+        adminTeams = [];
         io.emit("leaderboard_update", leaderboard);
+        io.emit("teams_update", adminTeams);
       }
     });
   });

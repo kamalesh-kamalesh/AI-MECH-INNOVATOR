@@ -221,7 +221,7 @@ export const HostDashboardModal: React.FC<HostDashboardModalProps> = ({
                         <div>
                           <span className="font-bold text-sm text-slate-100 block">{entry.teamName}</span>
                           <span className="text-[10px] text-slate-400 block truncate">
-                            Mission: {entry.missionTitle} • Score: {entry.totalScore} pts (Perf={entry.performanceScore}, Know={entry.knowledgeScore}, Design={entry.designScore}, AI={entry.aiScore})
+                            Missions: {entry.robot1MissionTitle} / {entry.robot2MissionTitle} • Score: {entry.totalScore} pts (R1={entry.robot1Score}, R2={entry.robot2Score}, Opt={entry.optimizationScore}, AI={entry.aiScore})
                           </span>
                         </div>
                       </div>

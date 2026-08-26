@@ -26,3 +26,4 @@ export const INITIAL_CHALLENGE_CONFIG: ChallengeConfig = {
     optimizationMax: 10,
   },
 };
+
