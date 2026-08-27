@@ -14,6 +14,7 @@ import {
 import { ROBOT1_MISSIONS, ROBOT2_MISSIONS } from './data/missions';
 import { Navbar } from './components/Navbar';
 import { LoginPage } from './components/LoginPage';
+import { InstructionsPage } from './components/InstructionsPage';
 import { MissionBriefing } from './components/MissionBriefing';
 import { DesignAndAI } from './components/DesignAndAI';
 import { InteractiveWiring } from './components/InteractiveWiring';
@@ -36,6 +37,7 @@ export default function App() {
 
   // Game Flow State: Starts at Round 0 (Login Screen)
   const [currentRound, setCurrentRound] = useState<GameRound>(0);
+  const [showInstructions, setShowInstructions] = useState<boolean>(false);
   const [teamName, setTeamName] = useState<string>('');
   const [member1, setMember1] = useState<string>('');
   const [member2, setMember2] = useState<string>('');
@@ -308,11 +310,12 @@ export default function App() {
     setTeamName(tName);
     setMember1(m1);
     setMember2(m2);
-    setCurrentRound(1); // Advance: Login -> Mission Briefing -> Robot 1
+    setShowInstructions(true); // Display instructions right after login page
   };
 
   // Reset Game
   const handlePlayAgain = () => {
+    setShowInstructions(false);
     setRobot1Mission(ROBOT1_MISSIONS[0]);
     setRobot2Mission(ROBOT2_MISSIONS[0]);
     setRobot1Selection({ drive: null, body: null, sensor: null, gripper: null, motor: null });
@@ -442,20 +445,36 @@ export default function App() {
           if (isAdminAuthenticated) setViewMode('admin_dashboard');
           else setViewMode('admin_login');
         }}
+        onOpenInstructions={() => setShowInstructions(true)}
       />
 
       {/* Main Game Screen View Port */}
       <main className="flex-1 py-4">
-        {/* ROUND 0: Login Page */}
-        {currentRound === 0 && (
-          <LoginPage
-            initialTeamName={teamName}
-            initialMember1={member1}
-            initialMember2={member2}
-            onStartChallenge={handleStartChallenge}
-            onOpenAdminLogin={() => setViewMode('admin_login')}
+        {/* INSTRUCTIONS PAGE (Displayed after Login or when Rules button clicked) */}
+        {showInstructions ? (
+          <InstructionsPage
+            teamName={teamName}
+            member1={member1}
+            member2={member2}
+            onProceed={() => {
+              setShowInstructions(false);
+              if (currentRound === 0) {
+                setCurrentRound(1);
+              }
+            }}
           />
-        )}
+        ) : (
+          <>
+            {/* ROUND 0: Login Page */}
+            {currentRound === 0 && (
+              <LoginPage
+                initialTeamName={teamName}
+                initialMember1={member1}
+                initialMember2={member2}
+                onStartChallenge={handleStartChallenge}
+                onOpenAdminLogin={() => setViewMode('admin_login')}
+              />
+            )}
 
         {/* ROUND 1: Briefing & Mission Assignment */}
         {currentRound === 1 && (
@@ -604,7 +623,9 @@ export default function App() {
             onPlayAgain={handlePlayAgain}
           />
         )}
-      </main>
+      </>
+    )}
+  </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-3 text-center text-xs font-mono text-slate-500">

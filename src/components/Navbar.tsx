@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Volume2, VolumeX, Trophy, ShieldCheck, Sparkles, Check, Lock } from 'lucide-react';
+import { Cpu, Volume2, VolumeX, Trophy, ShieldCheck, Sparkles, Check, Lock, BookOpen } from 'lucide-react';
 import { playClickSound } from '../utils/audio';
 
 interface NavbarProps {
@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenLeaderboard: () => void;
   onOpenHostModal: () => void;
   onOpenAdminDashboard: () => void;
+  onOpenInstructions?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenLeaderboard,
   onOpenHostModal,
   onOpenAdminDashboard,
+  onOpenInstructions,
 }) => {
   const roundSteps = [
     { num: 0, label: '0 Login' },
@@ -121,6 +123,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {soundMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
           </button>
+
+          {/* Instructions Button */}
+          {onOpenInstructions && (
+            <button
+              onClick={() => {
+                playClickSound();
+                onOpenInstructions();
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 font-mono text-xs font-bold transition-colors cursor-pointer"
+              title="View Competition Rules & Instructions"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden md:inline">Rules</span>
+            </button>
+          )}
 
           {/* Leaderboard Button - Locked during gameplay (Rounds 1-5), Active in Round 6 */}
           {currentRound < 6 ? (
