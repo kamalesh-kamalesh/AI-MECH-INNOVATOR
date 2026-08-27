@@ -100,10 +100,14 @@ export default function App() {
   // Socket.io initialization & cleanup
   useEffect(() => {
     if (!socket) {
-      socket = io(window.location.origin, {
+      socket = io({
+        path: '/socket.io',
         transports: ['polling', 'websocket'],
-        reconnectionAttempts: 10,
-        timeout: 10000,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 15000,
         autoConnect: true,
       });
 

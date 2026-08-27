@@ -59,7 +59,9 @@ async function startServer() {
   const app = express();
   const server = http.createServer(app);
   const io = new SocketIOServer(server, {
-    cors: { origin: "*" }
+    path: "/socket.io",
+    cors: { origin: "*" },
+    allowEIO3: true,
   });
 
   const PORT = 3000;
@@ -184,8 +186,8 @@ async function startServer() {
     });
   });
 
-  // REST Leaderboard fallback
-  app.get("/api/leaderboard", (_req, res) => {
+  // REST Leaderboard fallback (supports both /api/leaderboard and /leaderboard)
+  app.get(["/api/leaderboard", "/leaderboard"], (_req, res) => {
     res.json({ leaderboard, scoresVisible });
   });
 
@@ -458,8 +460,8 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     return res.status(401).json({ success: false, message: "Invalid host passcode" });
   });
 
-  // REST Teams endpoint for Admin
-  app.get("/api/teams", (_req, res) => {
+  // REST Teams endpoint for Admin (supports both /api/teams and /teams)
+  app.get(["/api/teams", "/teams"], (_req, res) => {
     res.json({ teams: adminTeams });
   });
 
