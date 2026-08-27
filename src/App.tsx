@@ -102,15 +102,16 @@ export default function App() {
     if (!socket) {
       socket = io(window.location.origin, {
         transports: ['polling', 'websocket'],
-        reconnectionAttempts: 5,
-        timeout: 5000,
+        reconnectionAttempts: 10,
+        timeout: 10000,
+        autoConnect: true,
       });
 
-      socket.on('connect_error', (err) => {
+      socket.on('connect_error', () => {
         // Suppress console error output for dev environment WebSocket limits
       });
 
-      socket.on('error', (err) => {
+      socket.on('error', () => {
         // Suppress socket errors
       });
     }
