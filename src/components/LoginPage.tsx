@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { playClickSound } from '../utils/audio';
 import { ArrowRight, Zap, AlertTriangle, User, Users, Bot, ShieldCheck } from 'lucide-react';
 
-const mechLogo = '/src/assets/images/mech_app_logo_1787638917066.jpg';
+import mechLogo from '../assets/images/mech_app_logo_1787638917066.jpg';
 
 interface LoginPageProps {
   initialTeamName: string;
