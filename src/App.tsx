@@ -100,7 +100,8 @@ export default function App() {
   // Socket.io initialization & cleanup
   useEffect(() => {
     if (!socket) {
-      socket = io({
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      socket = io(backendUrl, {
         path: '/socket.io',
         transports: ['polling', 'websocket'],
         reconnection: true,
@@ -131,8 +132,8 @@ export default function App() {
     socket.on('visibility_update', (visible: boolean) => {
       setScoresVisible(visible);
     });
-
-    fetch('/api/leaderboard')
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    fetch(`${backendUrl}/api/leaderboard`)
       .then((res) => res.json())
       .then((data) => {
         if (data.leaderboard) setLeaderboard(data.leaderboard);
@@ -175,9 +176,9 @@ export default function App() {
     setChatHistory((prev) => [...prev, userMsg]);
     setAiCredits((prev) => Math.max(0, prev - 1));
     setAiQuestionsAsked((prev) => prev + 1);
-
     try {
-      const endpoint = provider === 'nvidia' ? '/api/nvidia/chat' : '/api/gemini/chat';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const endpoint = provider === 'nvidia' ? `${backendUrl}/api/nvidia/chat` : `${backendUrl}/api/gemini/chat`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

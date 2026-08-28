@@ -6,6 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ async function startServer() {
 
   const PORT = 3000;
 
+  app.use(cors());
   app.use(express.json());
 
   // Initialize Gemini AI Client

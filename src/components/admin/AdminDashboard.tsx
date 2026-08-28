@@ -73,7 +73,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Fetch initial teams from backend and listen for live socket updates
   useEffect(() => {
-    fetch('/api/teams')
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+    fetch(`${backendUrl}/api/teams`)
       .then((res) => res.json())
       .then((data) => {
         if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
@@ -111,7 +112,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
 
     try {
-      await fetch('/api/admin/reset', { method: 'POST' });
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      await fetch(`${backendUrl}/api/admin/reset`, { method: 'POST' });
     } catch (err) {
       console.warn('Backend reset call warning:', err);
     }
