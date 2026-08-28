@@ -588,8 +588,64 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
           currentStage: 'RESULTS',
           currentRobot: 'Finished',
           totalScore: entry.totalScore,
+          robot1: {
+            ...adminTeams[teamIdx].robot1,
+            totalScore: entry.robot1Score,
+          },
+          robot2: {
+            ...adminTeams[teamIdx].robot2,
+            totalScore: entry.robot2Score,
+          },
+          aiStrategyScore: entry.aiScore,
+          optimizationScore: entry.optimizationScore,
           progressPercent: 100,
         };
+        io.emit("teams_update", adminTeams);
+      } else {
+        const newTeam: AdminTeamEntry = {
+          id: entry.id,
+          name: entry.teamName,
+          avatar: '🏆',
+          members: ['Player 1', 'Player 2'],
+          status: 'COMPLETED',
+          currentStage: 'RESULTS',
+          currentRobot: 'Finished',
+          aiCreditsUsed: 0,
+          aiCreditsRemaining: 5,
+          aiQuestionsAsked: entry.aiQuestionsAsked || 0,
+          aiHistorySummary: [],
+          robot1: {
+            missionTitle: entry.robot1MissionTitle,
+            selectedDrive: 'Unknown',
+            selectedBody: 'Unknown',
+            selectedSensor: 'Unknown',
+            testAttempts: 0,
+            failuresCount: 0,
+            repairsCount: 0,
+            currentPerformanceScore: 0,
+            totalScore: entry.robot1Score,
+            isComplete: true,
+          },
+          robot2: {
+            missionTitle: entry.robot2MissionTitle,
+            selectedDrive: 'Unknown',
+            selectedBody: 'Unknown',
+            selectedSensor: 'Unknown',
+            testAttempts: 0,
+            failuresCount: 0,
+            repairsCount: 0,
+            currentPerformanceScore: 0,
+            totalScore: entry.robot2Score,
+            isComplete: true,
+          },
+          aiStrategyScore: entry.aiScore,
+          optimizationScore: entry.optimizationScore,
+          totalScore: entry.totalScore,
+          timeRemainingSeconds: 0,
+          progressPercent: 100,
+          loginTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        adminTeams.unshift(newTeam);
         io.emit("teams_update", adminTeams);
       }
     });
