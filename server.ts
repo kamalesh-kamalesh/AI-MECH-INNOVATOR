@@ -7,6 +7,8 @@ import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import cors from "cors";
+import { database } from "./firebase";
+import { ref, set, get } from "firebase/database";
 
 dotenv.config();
 
@@ -69,6 +71,31 @@ async function startServer() {
 
   app.use(cors());
   app.use(express.json());
+
+  // --- FIREBASE SYNC INIT ---
+  try {
+    const lbSnapshot = await get(ref(database, "aimech_leaderboard"));
+    if (lbSnapshot.exists()) {
+      leaderboard = lbSnapshot.val() || [];
+    }
+    const teamsSnapshot = await get(ref(database, "aimech_teams"));
+    if (teamsSnapshot.exists()) {
+      adminTeams = teamsSnapshot.val() || [];
+    }
+    console.log("Firebase synced: Loaded initial state from DB");
+  } catch (err) {
+    console.error("Failed to load initial state from Firebase:", err);
+  }
+
+  function syncToFirebase() {
+    try {
+      set(ref(database, "aimech_leaderboard"), leaderboard).catch(console.error);
+      set(ref(database, "aimech_teams"), adminTeams).catch(console.error);
+    } catch (e) {
+      console.error("Firebase sync error:", e);
+    }
+  }
+
 
   // Initialize Gemini AI Client
   let aiClient: GoogleGenAI | null = null;
@@ -471,6 +498,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
   app.post("/api/admin/reset", (_req, res) => {
     leaderboard = [];
     adminTeams = [];
+    syncToFirebase();
     io.emit("leaderboard_update", leaderboard);
     io.emit("teams_update", adminTeams);
     res.json({ success: true, message: "Competition reset successfully" });
@@ -551,6 +579,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
         adminTeams.unshift(newTeam);
       }
 
+      syncToFirebase();
       io.emit("teams_update", adminTeams);
     });
 
@@ -558,6 +587,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
     socket.on("reset_competition", () => {
       leaderboard = [];
       adminTeams = [];
+      syncToFirebase();
       io.emit("leaderboard_update", leaderboard);
       io.emit("teams_update", adminTeams);
     });
@@ -577,6 +607,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
 
       // Sort descending by total score
       leaderboard.sort((a, b) => b.totalScore - a.totalScore);
+      syncToFirebase();
       io.emit("leaderboard_update", leaderboard);
 
       // Also update adminTeams entry to COMPLETED
@@ -648,6 +679,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
           loginTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         adminTeams.unshift(newTeam);
+        syncToFirebase();
         io.emit("teams_update", adminTeams);
       }
     });
@@ -657,6 +689,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
       if (hostPasscode === "aimech2026") {
         leaderboard = leaderboard.filter((item) => item.id !== id);
         adminTeams = adminTeams.filter((item) => item.id !== id);
+        syncToFirebase();
         io.emit("leaderboard_update", leaderboard);
         io.emit("teams_update", adminTeams);
       }
@@ -675,6 +708,7 @@ Highlight hardware physics, torque requirements, sensor frequency noise, structu
       if (hostPasscode === "aimech2026") {
         leaderboard = [];
         adminTeams = [];
+        syncToFirebase();
         io.emit("leaderboard_update", leaderboard);
         io.emit("teams_update", adminTeams);
       }
