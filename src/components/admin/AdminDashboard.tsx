@@ -38,18 +38,16 @@ import {
   RotateCcw
 } from 'lucide-react';
 
-import { Socket } from 'socket.io-client';
+import { onTeamsChange, clearAll } from '../../firebase';
 
 interface AdminDashboardProps {
   onLogout: () => void;
   onSwitchToPlayerMode: () => void;
-  socket?: Socket | null;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogout,
   onSwitchToPlayerMode,
-  socket,
 }) => {
   // Master State
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -71,32 +69,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Live Clock
   const [currentTimeStr, setCurrentTimeStr] = useState('');
 
-  // Fetch initial teams from backend and listen for live socket updates
+  // Firebase real-time listener for teams
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-    fetch(`${backendUrl}/api/teams`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
-          setTeams(data.teams);
-        }
-      })
-      .catch((err) => console.warn('Failed to fetch /api/teams:', err));
+    const unsub = onTeamsChange((liveTeams) => {
+      if (Array.isArray(liveTeams) && liveTeams.length > 0) {
+        setTeams(liveTeams);
+      }
+    });
 
-    if (socket) {
-      socket.emit('get_leaderboard');
-      const handleTeamsUpdate = (liveTeams: AdminTeam[]) => {
-        if (Array.isArray(liveTeams)) {
-          setTeams(liveTeams);
-        }
-      };
-
-      socket.on('teams_update', handleTeamsUpdate);
-      return () => {
-        socket.off('teams_update', handleTeamsUpdate);
-      };
-    }
-  }, [socket]);
+    return () => unsub();
+  }, []);
 
   const handleResetCompetition = async () => {
     playClickSound();
@@ -107,16 +89,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSelectedTeam(null);
     setShowResetModal(false);
 
-    if (socket) {
-      socket.emit('reset_competition');
-    }
-
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-      await fetch(`${backendUrl}/api/admin/reset`, { method: 'POST' });
-    } catch (err) {
-      console.warn('Backend reset call warning:', err);
-    }
+    // Clear Firebase data directly
+    await clearAll();
   };
 
   useEffect(() => {

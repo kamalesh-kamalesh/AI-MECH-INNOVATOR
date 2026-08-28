@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import {
+  submitScoreAndUpdateTeam,
+  syncTeam,
+  deleteTeam,
+  clearAll,
+  setVisibility,
+  onLeaderboardChange,
+  onVisibilityChange,
+} from './firebase';
 import {
   Mission,
   ComponentSelection,
@@ -28,7 +36,7 @@ import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { isSoundMuted, toggleSoundMute } from './utils/audio';
 
-let socket: Socket | null = null;
+// Firebase is used directly — no socket needed
 
 export default function App() {
   // Navigation Mode: 'player' | 'admin_login' | 'admin_dashboard'
@@ -101,53 +109,19 @@ export default function App() {
   const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
   const [autoSubmitTriggered, setAutoSubmitTriggered] = useState<boolean>(false);
 
-  // Socket.io initialization & cleanup
+  // Firebase real-time listeners
   useEffect(() => {
-    if (!socket) {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-      socket = io(backendUrl, {
-        path: '/socket.io',
-        transports: ['polling', 'websocket'],
-        reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        timeout: 15000,
-        autoConnect: true,
-      });
-
-      socket.on('connect_error', () => {
-        // Suppress console error output for dev environment WebSocket limits
-      });
-
-      socket.on('error', () => {
-        // Suppress socket errors
-      });
-    }
-
-    socket.on('connect', () => {
-      socket?.emit('get_leaderboard');
-    });
-
-    socket.on('leaderboard_update', (data: LeaderboardEntry[]) => {
+    const unsubLeaderboard = onLeaderboardChange((data) => {
       setLeaderboard(data);
     });
 
-    socket.on('visibility_update', (visible: boolean) => {
+    const unsubVisibility = onVisibilityChange((visible) => {
       setScoresVisible(visible);
     });
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-    fetch(`${backendUrl}/api/leaderboard`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.leaderboard) setLeaderboard(data.leaderboard);
-        if (data.scoresVisible !== undefined) setScoresVisible(data.scoresVisible);
-      })
-      .catch((err) => console.warn('REST leaderboard fallback error:', err));
 
     return () => {
-      socket?.off('leaderboard_update');
-      socket?.off('visibility_update');
+      unsubLeaderboard();
+      unsubVisibility();
     };
   }, []);
 
@@ -309,7 +283,7 @@ export default function App() {
     setCurrentRound(7);
   };
 
-  // Submit Score to Leaderboard
+  // Submit Score to Leaderboard (direct Firebase write)
   const handleSubmitScoreToLeaderboard = (scoreData: GameScore, teamNameInput: string) => {
     const totalMistakes = r1WiringMistakes + r2WiringMistakes;
     const entry: LeaderboardEntry = {
@@ -328,20 +302,26 @@ export default function App() {
       grade: scoreData.grade,
     };
 
-    socket?.emit('submit_score', entry);
+    submitScoreAndUpdateTeam(entry);
   };
 
-  // Host Action Handlers
+  // Host Action Handlers (direct Firebase writes with passcode check)
   const handleHostDeleteTeam = (id: string, hostPasscode: string) => {
-    socket?.emit('host_delete_team', { id, hostPasscode });
+    if (hostPasscode === 'aimech2026') {
+      deleteTeam(id);
+    }
   };
 
   const handleHostToggleVisibility = (hostPasscode: string) => {
-    socket?.emit('host_toggle_visibility', { hostPasscode });
+    if (hostPasscode === 'aimech2026') {
+      setVisibility(!scoresVisible);
+    }
   };
 
   const handleHostClearAll = (hostPasscode: string) => {
-    socket?.emit('host_clear_all', { hostPasscode });
+    if (hostPasscode === 'aimech2026') {
+      clearAll();
+    }
   };
 
   // Start Challenge handler from Login Page
@@ -376,7 +356,7 @@ export default function App() {
     setCurrentRound(0);
   };
 
-  // Synchronize live team progress to server & Admin Dashboard
+  // Synchronize live team progress to Firebase (direct write)
   useEffect(() => {
     if (!teamName) return;
     const stageMap: Record<number, string> = {
@@ -390,7 +370,7 @@ export default function App() {
       7: 'RESULTS',
     };
     const currentStage = stageMap[currentRound] || 'ACTIVE';
-    socket?.emit('team_sync', {
+    syncTeam({
       name: teamName,
       members: [member1 || 'Player 1', member2 || 'Player 2'],
       status: currentRound === 7 ? 'COMPLETED' : (currentRound === 3 || currentRound === 5 ? 'TESTING' : 'ACTIVE'),
@@ -423,7 +403,6 @@ export default function App() {
   if (viewMode === 'admin_dashboard') {
     return (
       <AdminDashboard
-        socket={socket}
         onLogout={() => {
           setIsAdminAuthenticated(false);
           setViewMode('player');
