@@ -97,6 +97,10 @@ export default function App() {
   const [isHostModalOpen, setIsHostModalOpen] = useState(false);
   const [soundMutedState, setSoundMutedState] = useState(isSoundMuted());
 
+  // Tab switch warning state
+  const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
+  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState<boolean>(false);
+
   // Socket.io initialization & cleanup
   useEffect(() => {
     if (!socket) {
@@ -146,6 +150,35 @@ export default function App() {
       socket?.off('visibility_update');
     };
   }, []);
+
+  // Track tab switching for anti-cheat warning and auto-submit
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.hidden &&
+        currentRound > 0 &&
+        currentRound < 7 &&
+        !autoSubmitTriggered
+      ) {
+        setTabSwitchCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount < 3) {
+            alert(`WARNING: You have switched tabs ${newCount} time(s). If you switch tabs 3 times, your game will automatically submit!`);
+          } else if (newCount >= 3) {
+            alert(`You switched tabs 3 times. Your game has been automatically submitted.`);
+            setAutoSubmitTriggered(true);
+            setCurrentRound(7);
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [currentRound, autoSubmitTriggered]);
 
   // Component selection handlers
   const handleSelectComponent = (
@@ -627,6 +660,7 @@ export default function App() {
             scoresVisible={scoresVisible}
             onSubmitScoreToLeaderboard={handleSubmitScoreToLeaderboard}
             onPlayAgain={handlePlayAgain}
+            autoSubmit={autoSubmitTriggered}
           />
         )}
       </>

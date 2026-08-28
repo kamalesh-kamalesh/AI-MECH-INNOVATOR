@@ -34,6 +34,7 @@ interface ScoringAndLeaderboardProps {
   scoresVisible: boolean;
   onSubmitScoreToLeaderboard: (scoreData: GameScore, teamName: string) => void;
   onPlayAgain: () => void;
+  autoSubmit?: boolean;
 }
 
 export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
@@ -53,6 +54,7 @@ export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
   scoresVisible,
   onSubmitScoreToLeaderboard,
   onPlayAgain,
+  autoSubmit = false,
 }) => {
   const [submittedToLeaderboard, setSubmittedToLeaderboard] = useState(false);
   const [inputTeamName, setInputTeamName] = useState(teamName || 'Team Mech');
@@ -102,6 +104,12 @@ export const ScoringAndLeaderboard: React.FC<ScoringAndLeaderboardProps> = ({
     setSubmittedToLeaderboard(true);
     onSubmitScoreToLeaderboard(scoreData, inputTeamName.trim() || 'Team Mech');
   };
+
+  React.useEffect(() => {
+    if (autoSubmit && !submittedToLeaderboard) {
+      handleSaveScore();
+    }
+  }, [autoSubmit, submittedToLeaderboard]);
 
   const filteredLeaderboard = leaderboard.filter(
     (e) =>
